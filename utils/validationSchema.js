@@ -47,8 +47,8 @@ const updateProductSchema = Joi.object({
 });
 
 const userUpdateSchema = Joi.object({
-  username: Joi.string().optional(),
-  email: Joi.string().email().optional(),
+  username: Joi.string().required(),
+  email: Joi.string().email().required(),
   password: Joi.string().min(8).optional(),
   role: Joi.string().valid("admin", "helper").optional(),
 });
