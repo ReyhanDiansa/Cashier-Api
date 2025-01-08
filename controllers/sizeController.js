@@ -338,8 +338,6 @@ exports.findAll = async (request, response) => {
             contains: lowercaseName,
           },
         },
-        skip: skip,
-        take: limit,
       });
     } else {
       totalItems = await prisma.size.count();

@@ -115,7 +115,7 @@ exports.addProduct = [
           res,
           400,
           false,
-          `Product with name, size and color already exists, please look for another one`,
+          `Product with that name, size and color already exists, please look for another one`,
           null
         );
       }
@@ -188,73 +188,47 @@ exports.getProduct = async (request, response) => {
   try {
     const page = parseInt(request.query.page) || 1;
     const limit = parseInt(request.query.limit) || 10;
-    const { name } = request.query;
+    const { name, available } = request.query;
+    const isAvailable = available === "true";
     const skip = (page - 1) * limit;
     let totalItems;
     let products;
 
+    const baseWhere = {};
+
     if (name) {
-      const lowercaseName = name.toLowerCase();
-
-      totalItems = await prisma.product.count({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(
-          response,
-          404,
-          false,
-          "No products data",
-          null
-        );
-      }
-
-      products = await prisma.product.findMany({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-        include: {
-          color: {
-            select: { id: true, name: true },
-          },
-          size: {
-            select: { id: true, name: true },
-          },
-        },
-        skip: skip,
-        take: limit,
-      });
-    } else {
-      totalItems = await prisma.product.count();
-      if (totalItems === 0) {
-        return responseFormatter(
-          response,
-          404,
-          false,
-          "No products data",
-          null
-        );
-      }
-
-      products = await prisma.product.findMany({
-        include: {
-          color: {
-            select: { id: true, name: true },
-          },
-          size: {
-            select: { id: true, name: true },
-          },
-        },
-        skip: skip,
-        take: limit,
-      });
+      baseWhere.name = {
+        contains: name.toLowerCase(),
+      };
     }
+
+    if (isAvailable) {
+      baseWhere.stock = {
+        not: 0,
+      };
+    }
+
+    totalItems = await prisma.product.count({
+      where: baseWhere,
+    });
+
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No products data", null);
+    }
+
+    products = await prisma.product.findMany({
+      where: baseWhere,
+      include: {
+        color: {
+          select: { id: true, name: true },
+        },
+        size: {
+          select: { id: true, name: true },
+        },
+      },
+      skip: skip,
+      take: limit,
+    });
 
     const totalPages = Math.ceil(totalItems / limit);
     if (page > totalPages) {
@@ -262,7 +236,7 @@ exports.getProduct = async (request, response) => {
         response,
         400,
         false,
-        "Page exceed total pages",
+        "Page exceeds total pages",
         null
       );
     } else {
@@ -308,6 +282,9 @@ exports.updateProduct = [
       const id = parseInt(request.params.id);
 
       if (!id) {
+        if (request.file) {
+          await deleteFile(request.file.filename);
+        }
         return responseFormatter(
           response,
           400,
@@ -323,6 +300,9 @@ exports.updateProduct = [
         },
       });
       if (!find) {
+        if (request.file) {
+          await deleteFile(request.file.filename);
+        }
         return responseFormatter(
           response,
           404,
@@ -351,7 +331,9 @@ exports.updateProduct = [
         });
 
         if (!checkSize) {
-          await deleteFile(request.file.filename);
+          if (request.file) {
+            await deleteFile(request.file.filename);
+          }
           return responseFormatter(
             response,
             400,
@@ -369,7 +351,9 @@ exports.updateProduct = [
         });
 
         if (!checkColor) {
-          await deleteFile(request.file.filename);
+          if (request.file) {
+            await deleteFile(request.file.filename);
+          }
           return responseFormatter(
             response,
             400,
@@ -437,10 +421,13 @@ exports.updateProduct = [
           response,
           200,
           true,
-          "Successfully updated product",
+          "Successfully update product",
           updatedProduct
         );
       } else {
+        if (request.file) {
+          await deleteFile(request.file.filename);
+        }
         return responseFormatter(
           response,
           400,
@@ -509,74 +496,50 @@ exports.findProduct = async (request, response) => {
 //without pagination
 exports.findAll = async (request, response) => {
   try {
-    const { name } = request.query;
+    const { name, available } = request.query;
+    const isAvailable = available === "true";
     let totalItems;
     let products;
 
+    const baseWhere = {};
+
     if (name) {
-      const lowercaseName = name.toLowerCase();
-
-      totalItems = await prisma.product.count({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(
-          response,
-          404,
-          false,
-          "No products data",
-          null
-        );
-      }
-
-      products = await prisma.product.findMany({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-        include: {
-          color: {
-            select: { id: true, name: true },
-          },
-          size: {
-            select: { id: true, name: true },
-          },
-        },
-      });
-    } else {
-      totalItems = await prisma.product.count();
-      if (totalItems === 0) {
-        return responseFormatter(
-          response,
-          404,
-          false,
-          "No products data",
-          null
-        );
-      }
-
-      products = await prisma.product.findMany({
-        include: {
-          color: {
-            select: { id: true, name: true },
-          },
-          size: {
-            select: { id: true, name: true },
-          },
-        },
-      });
+      baseWhere.name = {
+        contains: name.toLowerCase(),
+      };
     }
+
+    if (isAvailable) {
+      baseWhere.stock = {
+        not: 0,
+      };
+    }
+
+    totalItems = await prisma.product.count({
+      where: baseWhere,
+    });
+
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No products data", null);
+    }
+
+    products = await prisma.product.findMany({
+      where: baseWhere,
+      include: {
+        color: {
+          select: { id: true, name: true },
+        },
+        size: {
+          select: { id: true, name: true },
+        },
+      },
+    });
 
     return responseFormatter(
       response,
       200,
       true,
-      "Successfully get products data",
+      "Successfully retrieved products data",
       products
     );
   } catch (error) {
