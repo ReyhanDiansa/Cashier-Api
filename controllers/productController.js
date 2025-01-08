@@ -191,8 +191,6 @@ exports.getProduct = async (request, response) => {
     const { name, available } = request.query;
     const isAvailable = available === "true";
     const skip = (page - 1) * limit;
-    let totalItems;
-    let products;
 
     const baseWhere = {};
 
@@ -208,7 +206,7 @@ exports.getProduct = async (request, response) => {
       };
     }
 
-    totalItems = await prisma.product.count({
+    let totalItems = await prisma.product.count({
       where: baseWhere,
     });
 
@@ -216,7 +214,7 @@ exports.getProduct = async (request, response) => {
       return responseFormatter(response, 404, false, "No products data", null);
     }
 
-    products = await prisma.product.findMany({
+    let products = await prisma.product.findMany({
       where: baseWhere,
       include: {
         color: {

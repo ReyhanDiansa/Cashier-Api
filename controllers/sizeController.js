@@ -107,42 +107,26 @@ exports.getSize = async (request, response) => {
     const limit = parseInt(request.query.limit) || 10;
     const { name } = request.query;
     const skip = (page - 1) * limit;
-    let totalItems;
-    let sizes;
+    const baseWhere = {};
 
     if (name) {
-      const lowercaseName = name.toLowerCase();
-      totalItems = await prisma.size.count({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No sizes data", null);
-      }
-
-      sizes = await prisma.size.findMany({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-        skip: skip,
-        take: limit,
-      });
-    } else {
-      totalItems = await prisma.size.count();
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No sizes data", null);
-      }
-
-      sizes = await prisma.size.findMany({
-        skip: skip,
-        take: limit,
-      });
+      baseWhere.name = {
+        contains: name.toLowerCase(),
+      };
     }
+
+    let totalItems = await prisma.size.count({
+      where: baseWhere,
+    });
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No sizes data", null);
+    }
+
+    let sizes = await prisma.size.findMany({
+      where: baseWhere,
+      skip: skip,
+      take: limit,
+    });
 
     const totalPages = Math.ceil(totalItems / limit);
     if (page > totalPages) {
@@ -317,36 +301,25 @@ exports.findAll = async (request, response) => {
     const { name } = request.query;
     let totalItems;
     let sizes;
+    const baseWhere = {};
 
     if (name) {
-      const lowercaseName = name.toLowerCase();
-
-      totalItems = await prisma.size.count({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No sizes data", null);
-      }
-
-      sizes = await prisma.size.findMany({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-    } else {
-      totalItems = await prisma.size.count();
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No sizes data", null);
-      }
-
-      sizes = await prisma.size.findMany();
+      baseWhere.name = {
+        contains: name.toLowerCase(),
+      };
     }
+
+    totalItems = await prisma.size.count({
+      where: baseWhere,
+    });
+
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No sizes data", null);
+    }
+
+    sizes = await prisma.size.findMany({
+      where: baseWhere,
+    });
 
     return responseFormatter(
       response,

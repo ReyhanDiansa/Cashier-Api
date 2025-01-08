@@ -149,60 +149,29 @@ exports.getUser = async (request, response) => {
     const limit = parseInt(request.query.limit) || 10;
     const { keyword } = request.query;
     const skip = (page - 1) * limit;
-    let totalItems;
-    let users;
+
+    const whereClause = {};
 
     if (keyword) {
-      const lowercaseName = keyword.toLowerCase();
-      totalItems = await prisma.user.count({
-        where: {
-          OR: [
-            {
-              username: {
-                contains: lowercaseName,
-              },
-            },
-            {
-              email: {
-                contains: lowercaseName,
-              },
-            },
-          ],
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No users data", null);
-      }
-
-      users = await prisma.user.findMany({
-        where: {
-          OR: [
-            {
-              username: {
-                contains: lowercaseName,
-              },
-            },
-            {
-              email: {
-                contains: lowercaseName,
-              },
-            },
-          ],
-        },
-        skip: skip,
-        take: limit,
-      });
-    } else {
-      totalItems = await prisma.user.count();
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No users data", null);
-      }
-
-      users = await prisma.user.findMany({
-        skip: skip,
-        take: limit,
-      });
+      whereClause.OR = [
+        { username: { contains: keyword.toLowerCase() } },
+        { email: { contains: keyword.toLowerCase() } },
+      ];
     }
+
+    let totalItems = await prisma.user.count({
+      where: whereClause,
+    });
+
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No users data", null);
+    }
+
+    let users = await prisma.user.findMany({
+      where: whereClause,
+      skip: skip,
+      take: limit,
+    });
 
     const totalPages = Math.ceil(totalItems / limit);
     if (page > totalPages) {
@@ -390,56 +359,25 @@ exports.findUser = async (request, response) => {
 exports.findAll = async (request, response) => {
   try {
     const { keyword } = request.query;
-    let totalItems;
-    let users;
+    const whereClause = {};
 
     if (keyword) {
-      const lowercaseName = keyword.toLowerCase();
-
-      totalItems = await prisma.user.count({
-        where: {
-          OR: [
-            {
-              username: {
-                contains: lowercaseName,
-              },
-            },
-            {
-              email: {
-                contains: lowercaseName,
-              },
-            },
-          ],
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No users data", null);
-      }
-
-      users = await prisma.user.findMany({
-        where: {
-          OR: [
-            {
-              username: {
-                contains: lowercaseName,
-              },
-            },
-            {
-              email: {
-                contains: lowercaseName,
-              },
-            },
-          ],
-        },
-      });
-    } else {
-      totalItems = await prisma.user.count();
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No users data", null);
-      }
-
-      users = await prisma.user.findMany();
+      whereClause.OR = [
+        { username: { contains: keyword.toLowerCase() } },
+        { email: { contains: keyword.toLowerCase() } },
+      ];
     }
+
+    let totalItems = await prisma.user.count({
+      where: whereClause,
+    });
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No users data", null);
+    }
+
+    let users = await prisma.user.findMany({
+      where: whereClause,
+    });
 
     return responseFormatter(
       response,
