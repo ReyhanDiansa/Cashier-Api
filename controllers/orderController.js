@@ -524,6 +524,7 @@ exports.updateOrder = async (request, response) => {
               `You cannot edit this product ordered because its status is already marked as 'done'/'cancel'.`
             );
           }
+          
           //If the status before deletion is pending, return the product stock to before ordering
           if (find.status === "pending") {
             const getDetail = await prisma.order_Detail.findMany({
@@ -789,7 +790,7 @@ exports.payOrder = async (request, response) => {
         response,
         403,
         false,
-        `You are not authorized to cancel this data as it belongs to another user.`,
+        `You are not authorized to pay this data as it belongs to another user.`,
         null
       );
     }

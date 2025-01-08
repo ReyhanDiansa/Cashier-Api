@@ -107,42 +107,26 @@ exports.getColor = async (request, response) => {
     const limit = parseInt(request.query.limit) || 10;
     const { name } = request.query;
     const skip = (page - 1) * limit;
-    let totalItems;
-    let colors;
+    const baseWhere = {};
 
     if (name) {
-      const lowercaseName = name.toLowerCase();
-      totalItems = await prisma.color.count({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No colors data", null);
-      }
-
-      colors = await prisma.color.findMany({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-        skip: skip,
-        take: limit,
-      });
-    } else {
-      totalItems = await prisma.color.count();
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No colors data", null);
-      }
-
-      colors = await prisma.color.findMany({
-        skip: skip,
-        take: limit,
-      });
+      baseWhere.name = {
+        contains: name.toLowerCase(),
+      };
     }
+
+    let totalItems = await prisma.color.count({
+      where: baseWhere,
+    });
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No colors data", null);
+    }
+
+    let colors = await prisma.color.findMany({
+      where: baseWhere,
+      skip: skip,
+      take: limit,
+    });
 
     const totalPages = Math.ceil(totalItems / limit);
     if (page > totalPages) {
@@ -315,38 +299,22 @@ exports.findColor = async (request, response) => {
 exports.findAll = async (request, response) => {
   try {
     const { name } = request.query;
-    let totalItems;
-    let colors;
+    const baseWhere = {};
 
     if (name) {
-      const lowercaseName = name.toLowerCase();
-
-      totalItems = await prisma.color.count({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        },
-      });
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No colors data", null);
-      }
-
-      colors = await prisma.color.findMany({
-        where: {
-          name: {
-            contains: lowercaseName,
-          },
-        }
-      });
-    } else {
-      totalItems = await prisma.color.count();
-      if (totalItems === 0) {
-        return responseFormatter(response, 404, false, "No colors data", null);
-      }
-
-      colors = await prisma.color.findMany();
+      baseWhere.name = {
+        contains: name.toLowerCase(),
+      };
     }
+
+    let totalItems = await prisma.color.count({
+      where: baseWhere,
+    });
+    if (totalItems === 0) {
+      return responseFormatter(response, 404, false, "No colors data", null);
+    }
+
+    let colors = await prisma.color.findMany({ where: baseWhere });
 
     return responseFormatter(
       response,
