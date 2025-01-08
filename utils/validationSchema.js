@@ -15,7 +15,7 @@ const registerSchema = Joi.object({
     .messages({
       "any.only": "Password confirmation must match the password",
     }),
-  role: Joi.string().valid("helper").optional(),
+  role: Joi.string().valid("helper", "admin").optional(),
 });
 
 const addSizeSchema = Joi.object({
@@ -23,8 +23,8 @@ const addSizeSchema = Joi.object({
 });
 
 const addColorSchema = Joi.object({
-    name: Joi.string().required(),
-  });
+  name: Joi.string().required(),
+});
 
 const addProductSchema = Joi.object({
   name: Joi.string().required(),
@@ -37,20 +37,57 @@ const addProductSchema = Joi.object({
 });
 
 const updateProductSchema = Joi.object({
-    name: Joi.string().required(),
-    sku: Joi.string().optional(),
-    description: Joi.string().optional(),
-    price: Joi.number().optional(),
-    stock: Joi.number().optional(),
-    colorId: Joi.optional(),
-    sizeId: Joi.optional(),
+  name: Joi.string().required(),
+  sku: Joi.string().optional(),
+  description: Joi.string().optional(),
+  price: Joi.number().optional(),
+  stock: Joi.number().integer().positive().optional(),
+  colorId: Joi.optional(),
+  sizeId: Joi.optional(),
 });
 
 const userUpdateSchema = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().email().required(),
+  username: Joi.string().optional(),
+  email: Joi.string().email().optional(),
   password: Joi.string().min(8).optional(),
-  gender: Joi.string().valid("laki-laki", "perempuan").required(),
+  role: Joi.string().valid("admin", "helper").optional(),
+});
+
+const addOrderSchema = Joi.object({
+  name: Joi.string().required(),
+  phone: Joi.string().min(10).optional(),
+  email: Joi.string().email().required(),
+  address: Joi.string().optional(),
+  detail: Joi.array()
+    .items(
+      Joi.object({
+        productId: Joi.number().integer().required(),
+        quantity: Joi.number().integer().positive().required(),
+      })
+    )
+    .required(),
+});
+
+const updateOrderSchema = Joi.object({
+  name: Joi.string().optional(),
+  phone: Joi.string().min(10).optional(),
+  email: Joi.string().email().optional(),
+  address: Joi.string().email().optional(),
+  detail: Joi.array()
+    .items(
+      Joi.object({
+        productId: Joi.number().integer().required(),
+        quantity: Joi.number().integer().positive().required(),
+      })
+    )
+    .optional(),
+});
+
+const addUserSchema = Joi.object({
+  username: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+  role: Joi.string().valid("helper", "admin").optional(),
 });
 
 module.exports = {
@@ -61,4 +98,7 @@ module.exports = {
   addProductSchema,
   updateProductSchema,
   userUpdateSchema,
+  addOrderSchema,
+  updateOrderSchema,
+  addUserSchema
 };

@@ -5,8 +5,8 @@ const authRoute = require("./routes/authRoute");
 const sizeRoute = require("./routes/sizeRoute");
 const colorRoute = require("./routes/colorRoute");
 const productRoute = require("./routes/productRoute");
-// const userRoute = require("./routes/userRoute");
-// const fileRoute = require("./routes/fileRoute");
+const userRoute = require("./routes/userRoute");
+const orderRoute = require("./routes/orderRoute");
 
 const app = express();
 
@@ -19,7 +19,8 @@ apiRouter.use(`/auth`, authRoute);
 apiRouter.use(`/size`, sizeRoute);
 apiRouter.use(`/color`, colorRoute);
 apiRouter.use(`/product`, productRoute);
-// apiRouter.use(`/file`, fileRoute);
+apiRouter.use(`/order`, orderRoute);
+apiRouter.use(`/user`, userRoute);
 
 //grouped router
 app.use(`/api/v1`, apiRouter);

@@ -337,9 +337,7 @@ exports.findAll = async (request, response) => {
           name: {
             contains: lowercaseName,
           },
-        },
-        skip: skip,
-        take: limit,
+        }
       });
     } else {
       totalItems = await prisma.color.count();
